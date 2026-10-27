@@ -4,6 +4,10 @@ const overview = document.querySelector(".user-data");
 const username = "Sazali23";
 // Unordered list to display the repos list
 const repoList = document.querySelector(".repo-list");
+// Section where all repo information appears
+const allReposContainer = document.querySelector(".repos");
+// Section where individual repo data will appear
+const repoData = document.querySelector(".repo-data");
 
 const getUserInfo = async function () {
   const userInfo = await fetch(`https://api.github.com/users/${username}`);
@@ -46,4 +50,47 @@ const displayRepos = function (repos) {
     repoItem.innerHTML = `<button class="repo-name">${repo.name}</button>`;
     repoList.append(repoItem);
   }
+};
+
+repoList.addEventListener("click", function (e) {
+  if (e.target.matches(".repo-name")) {
+    const repoName = e.target.innerText;
+    getRepoInfo(repoName);
+  }
+});
+
+const getRepoInfo = async function (repoName) {
+  const fetchInfo = await fetch(`https://api.github.com/repos/${username}/${repoName}`);
+  const repoInfo = await fetchInfo.json();
+  // console.log(repoInfo);
+
+  // Grab languages
+  const fetchLanguages = await fetch(repoInfo.languages_url);
+  const languageData = await fetchLanguages.json();
+  // console.log(languageData);
+
+  // Make a list of languages
+  const languages = [];
+  for (const language in languageData) {
+    languages.push(language);
+  }
+  // console.log(languages);
+
+  displayRepoInfo(repoInfo, languages);
+};
+
+const displayRepoInfo = function (repoInfo, languages) {
+  repoData.innerHTML = "";
+  const div = document.createElement("div");
+  div.classList.add("repo-info");
+  div.innerHTML = `
+    <h3>Name: ${repoInfo.name}</h3>
+    <p>Description: ${repoInfo.description}</p>
+    <p>Default Branch: ${repoInfo.default_branch}</p>
+    <p>Languages: ${languages.join(", ")}</p>
+    <a class="visit" href="${repoInfo.html_url}" target="_blank" rel="noreferrer noopener">View Repo on GitHub!</a>
+  `;
+  repoData.append(div);
+  repoData.classList.remove("hide");
+  allReposContainer.classList.add("hide");
 };
